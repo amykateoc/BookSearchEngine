@@ -2,6 +2,16 @@ const express = require('express');
 const path = require('path');
 const db = require('./config/connection');
 const routes = require('./routes');
+const { authMiddleware } = require('./utils/auth');
+const { ApolloServer } = require('apollo-server-express');
+const { typeDefs, resolvers } = require('./schemas');
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: authMiddleware
+})
+
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,6 +26,16 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(routes);
 
+async function startApolloServer () {
+await server.start()
+server.applyMiddleware({app})
+
 db.once('open', () => {
-  app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`));
+  app.listen(PORT, () => {
+    console.log(`🌍 Now listening on localhost:${PORT}`);
+  console.log(`Use GraphQL at http://localhost:${PORT}${server.graphqlPath}`)
 });
+})
+}
+
+startApolloServer();

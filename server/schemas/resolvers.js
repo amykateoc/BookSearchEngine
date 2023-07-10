@@ -21,7 +21,8 @@ module.exports = {
 
   Mutation: {
     // create a user, sign a token, and send it back (to client/src/components/SignUpForm.js)
-    async createUser(_, { input }, { res }) {
+    async createUser(_, input, { res }) {
+      console.log(input);
       const user = await User.create(input);
 
       if (!user) {
@@ -33,14 +34,14 @@ module.exports = {
     },
 
     // login a user, sign a token, and send it back (to client/src/components/LoginForm.js)
-    async login(_, { input }, { res }) {
+    async login(_, input, { res }) {
       const user = await User.findOne({ $or: [{ username: input.username }, { email: input.email }] });
 
       if (!user) {
         throw new Error("Can't find this user");
       }
 
-      const correctPw = await user.isCorrectPassword(input.password);
+      const correctPw = user.isCorrectPassword(input.password);
 
       if (!correctPw) {
         throw new Error('Wrong password!');
